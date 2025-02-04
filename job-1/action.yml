@@ -1,0 +1,57 @@
+name: Image build/push
+description: Build and push of app back/front image
+inputs:
+  initial:
+    type: string
+    required: false
+    default: 'no'
+  app-component:
+    type: string 
+    required: true
+  container:
+    type: string
+    required: true
+  port:
+    type: string
+    required: true
+  docker-uname:
+    required: true
+  docker-token:
+    required: true
+ outputs:
+   image-tag: ${{ steps.tagging.outputs.image-tag }}    
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Debug Docker Username.
+      run: echo "Docker username is '${{ inputs.docker-uname }}'"
+
+    - name: Set tag for docker image
+      id: tagging
+      run: |
+        if [ "${{ inputs.initial }}" == "yes" ]; then
+          tag="first"
+          echo "image-tag=first" >> $GITHUB_OUTPUT
+        else  
+          tag="${GITHUB_SHA::7}"
+          echo "image-tag=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Tagging and build of docker image    
+      run: |
+        echo "It is: ${{ steps.tagging.outputs.image-tag }}"
+        docker build -t ${{ secrets.docker-uname }}/${{ inputs.app-component }}:${{ steps.tagging.outputs.image-tag }} .
+ 
+    - name: Test newly created build image
+      run: docker run --rm -d --name ${{inputs.container}} -p ${{inputs.port}}:${{inputs.port}} ${{inputs.docker-uname}}/${{inputs.app-component}}:${{ steps.tagging.outputs.image-tag }}  
+
+    - name: Push image to DockerHub
+      if  : success()
+      run : |
+        docker login -u ${{ inputs.docker-uname }} -p ${{ inputs.docker-token }}
+        docker push ${{ inputs.docker-uname }}/${{inputs.app-component}}:${{ steps.tagging.outputs.image-tag }}  
