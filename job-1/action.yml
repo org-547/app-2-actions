@@ -21,7 +21,9 @@ inputs:
     required: true
     
 outputs:
-  image-tag: ${{ steps.tagging.outputs.image-tag }}    
+  image-tag: 
+    description: "get new image-tag"
+    value: ${{ steps.tagging.outputs.image-tag }}    
 
 runs:
   using: "composite"
@@ -47,10 +49,10 @@ runs:
         fi
 
     - name: Tagging and build of docker image
-      shel: bash
+      shell: bash
       run: |
         echo "It is: ${{ steps.tagging.outputs.image-tag }}"
-        docker build -t ${{ secrets.docker-uname }}/${{ inputs.app-component }}:${{ steps.tagging.outputs.image-tag }} .
+        docker build -t ${{ inputs.docker-uname }}/${{ inputs.app-component }}:${{ steps.tagging.outputs.image-tag }} .
  
     - name: Test newly created build image
       shell: bash
