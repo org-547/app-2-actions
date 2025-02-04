@@ -20,8 +20,8 @@ inputs:
   docker-token:
     required: true
     
- outputs:
-   image-tag: ${{ steps.tagging.outputs.image-tag }}    
+outputs:
+  image-tag: ${{ steps.tagging.outputs.image-tag }}    
 
 runs:
   using: "composite"
