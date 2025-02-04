@@ -1,23 +1,25 @@
-name: Image build/push
-description: Build and push of app back/front image
+name: 'Image build/push'
+description: 'Build and push of app back/front image'
+
 inputs:
   initial:
-    type: string
+    #type: string
     required: false
     default: 'no'
   app-component:
-    type: string 
+    #type: string 
     required: true
   container:
-    type: string
+    #type: string
     required: true
   port:
-    type: string
+    #type: string
     required: true
   docker-uname:
     required: true
   docker-token:
     required: true
+    
  outputs:
    image-tag: ${{ steps.tagging.outputs.image-tag }}    
 
@@ -30,9 +32,11 @@ runs:
 
     - name: Debug Docker Username.
       run: echo "Docker username is '${{ inputs.docker-uname }}'"
+      shell: bash
 
     - name: Set tag for docker image
       id: tagging
+      shell: bash
       run: |
         if [ "${{ inputs.initial }}" == "yes" ]; then
           tag="first"
@@ -42,16 +46,19 @@ runs:
           echo "image-tag=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
         fi
 
-    - name: Tagging and build of docker image    
+    - name: Tagging and build of docker image
+      shel: bash
       run: |
         echo "It is: ${{ steps.tagging.outputs.image-tag }}"
         docker build -t ${{ secrets.docker-uname }}/${{ inputs.app-component }}:${{ steps.tagging.outputs.image-tag }} .
  
     - name: Test newly created build image
+      shell: bash
       run: docker run --rm -d --name ${{inputs.container}} -p ${{inputs.port}}:${{inputs.port}} ${{inputs.docker-uname}}/${{inputs.app-component}}:${{ steps.tagging.outputs.image-tag }}  
 
     - name: Push image to DockerHub
       if  : success()
+      shell: bash
       run : |
         docker login -u ${{ inputs.docker-uname }} -p ${{ inputs.docker-token }}
         docker push ${{ inputs.docker-uname }}/${{inputs.app-component}}:${{ steps.tagging.outputs.image-tag }}  
