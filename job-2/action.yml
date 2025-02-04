@@ -1,0 +1,96 @@
+name: 'Update and Deploy'
+description: 'Update image tag and up compose'
+
+inputs:
+  git-user:
+    required: true
+    description: 'Username for git configuration'
+  email:
+    required: true
+    description: 'Email address for git cinfiguration'
+  ssh-priv-key:
+    required: true
+    description: 'For ssh connection to target repositiry'
+  app-component:
+    required: true
+    description: 'Current repository name'
+  git-token:
+    required: true
+  second-component-tag:
+    required: true
+    description: 'Value of second image tag'
+    
+outputs:
+  awk-out:
+    description: "Output of awk command for getting image-tag value"
+    value: ${{ steps.get-line.outputs.awk-out }}
+  #image-tag: 
+    #description: "get new image-tag"
+    #value: ${{ steps.tagging.outputs.image-tag }}    
+
+runs:
+  using: "composite"
+
+  steps:
+
+    - name: Git Setup
+      run: |
+        git config --global user.name '${{ inputs.git-user }}'
+        git config --global user.email '${{ inputs.email }}'
+
+    - name: SSH Setup
+      uses: MrSquaare/ssh-setup-action@v1
+      with:
+        host: github.com
+        private-key: ${{ inputs.ssh-priv-key }}
+        private-key-name: github
+
+    - name: Check and clone repository
+      run: |
+        if grep -q "${{ inputs.app-component }}" <<< $(ls -lt); then
+          echo "Repository with name ${{ inputs.app-component }} already exists!"
+          rm -rf ${{ inputs.app-component }}
+        fi
+          git clone git@github.com:org-547/${{ inputs.app-component }}.git    
+
+    - name: Change image-tag in compose file
+      working-directory: app-server-2
+      run: sed -E -i'' "s/(.*${{ inputs.app-component }}:).*/\1${GITHUB_SHA::7}/" 'docker-compose.yml'      
+
+    - name: Commit and push changes without trigger
+      working-directory: ${{ inputs.app-component }}
+      env:
+        GITHUB_TOKEN: ${{ inputs.git-token }}
+      run: |
+        git add docker-compose.yml
+        git commit -m "[skip actions]"
+        git push origin main  
+ 
+    - name: Check containers existence
+      run: |
+        for cnt in back-cnt front-cnt pg-cnt
+        do
+          if docker ps -a --format '{{.Names}}' | grep -q "$cnt"; then
+            echo "Container with name $cnt already exists!"
+            docker stop "$cnt" || true
+            docker rm "$cnt" || true
+          fi
+        done    
+
+    - name: Execute awk command for extract second component image-tag
+      id: get-line
+      working-directory: ${{ inputs.app-component }}
+      run: echo "awk-out=$(awk '/${{ inputs.second-component-tag}}$/' docker-compose.yml)" >> $GITHUB_OUTPUT    
+
+    - name: Check line content and up compose
+      working-directory: ${{ inputs.app-component }}
+      run: |
+        echo ${{ steps.get-line.outputs.awk-out }}
+        if [[ "${{ steps.get-line.outputs.awk-out }}" == *"undefined"* ]]; then
+          echo "Second image-tag is not been determined yet!"
+        else  
+          docker-compose down
+          docker-compose up -d
+        fi  
+      
+  
