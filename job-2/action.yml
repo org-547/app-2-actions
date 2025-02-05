@@ -15,7 +15,7 @@ inputs:
     required: true
     description: 'Current repository name'
   execution-workdir:
-    required: false
+    required: true
     description: 'For using by client-repo after cloning server-repo'
   git-token:
     required: true
@@ -60,12 +60,12 @@ runs:
 
     - name: Change image-tag in compose file
       shell: bash
-      working-directory: ${{ inputs.app-component }}
+      working-directory: ${{ inputs.execution-workdir }}
       run: sed -E -i'' "s/(.*${{ inputs.app-component }}:).*/\1${GITHUB_SHA::7}/" 'docker-compose.yml'      
 
     - name: Commit and push changes without trigger
       shell: bash
-      working-directory: ${{ inputs.app-component }}
+      working-directory: ${{ inputs.execution-workdir }}
       env:
         GITHUB_TOKEN: ${{ inputs.git-token }}
       run: |
@@ -88,12 +88,12 @@ runs:
     - name: Execute awk command for extract second component image-tag
       id: get-line
       shell: bash
-      working-directory: ${{ inputs.app-component }}
+      working-directory: ${{ inputs.execution-workdir }}
       run: echo "awk-out=$(awk '/${{ inputs.second-component-tag}}$/' docker-compose.yml)" >> $GITHUB_OUTPUT    
 
     - name: Check line content and up compose
       shell: bash
-      working-directory: ${{ inputs.app-component }}
+      working-directory: ${{ inputs.execution-workdir }}
       run: |
         echo ${{ steps.get-line.outputs.awk-out }}
         if [[ "${{ steps.get-line.outputs.awk-out }}" == *"undefined"* ]]; then
