@@ -57,7 +57,7 @@ runs:
 
     - name: Change image-tag in compose file
       shell: bash
-      working-directory: app-server-2
+      working-directory: ${{ inputs.app-component }}
       run: sed -E -i'' "s/(.*${{ inputs.app-component }}:).*/\1${GITHUB_SHA::7}/" 'docker-compose.yml'      
 
     - name: Commit and push changes without trigger
