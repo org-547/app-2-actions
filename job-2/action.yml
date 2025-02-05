@@ -52,11 +52,11 @@ runs:
     - name: Check and clone repository
       shell: bash
       run: |
-        if grep -q "${{ inputs.app-component }}" <<< $(ls -lt); then
-          echo "Repository with name ${{ inputs.app-component }} already exists!"
-          rm -rf ${{ inputs.app-component }}
+        if grep -q "${{ inputs.execution-workdir }}" <<< $(ls -lt); then
+          echo "Repository with name ${{ inputs.execution-workdir }} already exists!"
+          rm -rf ${{ inputs.execution-workdir }}
         fi
-          git clone git@github.com:org-547/${{ inputs.app-component }}.git    
+          git clone git@github.com:org-547/${{ inputs.execution-workdir }}.git    
 
     - name: Change image-tag in compose file
       shell: bash
