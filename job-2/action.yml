@@ -34,6 +34,7 @@ runs:
   steps:
 
     - name: Git Setup
+      shell: bash
       run: |
         git config --global user.name '${{ inputs.git-user }}'
         git config --global user.email '${{ inputs.email }}'
@@ -46,6 +47,7 @@ runs:
         private-key-name: github
 
     - name: Check and clone repository
+      shell: bash
       run: |
         if grep -q "${{ inputs.app-component }}" <<< $(ls -lt); then
           echo "Repository with name ${{ inputs.app-component }} already exists!"
@@ -54,10 +56,12 @@ runs:
           git clone git@github.com:org-547/${{ inputs.app-component }}.git    
 
     - name: Change image-tag in compose file
+      shell: bash
       working-directory: app-server-2
       run: sed -E -i'' "s/(.*${{ inputs.app-component }}:).*/\1${GITHUB_SHA::7}/" 'docker-compose.yml'      
 
     - name: Commit and push changes without trigger
+      shell: bash
       working-directory: ${{ inputs.app-component }}
       env:
         GITHUB_TOKEN: ${{ inputs.git-token }}
@@ -67,6 +71,7 @@ runs:
         git push origin main  
  
     - name: Check containers existence
+      shell: bash
       run: |
         for cnt in back-cnt front-cnt pg-cnt
         do
@@ -79,10 +84,12 @@ runs:
 
     - name: Execute awk command for extract second component image-tag
       id: get-line
+      shell: bash
       working-directory: ${{ inputs.app-component }}
       run: echo "awk-out=$(awk '/${{ inputs.second-component-tag}}$/' docker-compose.yml)" >> $GITHUB_OUTPUT    
 
     - name: Check line content and up compose
+      shell: bash
       working-directory: ${{ inputs.app-component }}
       run: |
         echo ${{ steps.get-line.outputs.awk-out }}
