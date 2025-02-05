@@ -14,6 +14,9 @@ inputs:
   app-component:
     required: true
     description: 'Current repository name'
+  execution-workdir:
+    required: false
+    description: 'For using by client-repo after cloning server-repo'
   git-token:
     required: true
   second-component-tag:
