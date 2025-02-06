@@ -2,9 +2,6 @@ name: 'Update and Deploy'
 description: 'Update image tag and up compose'
 
 inputs:
-  #not-default-workdir:
-    #required: true
-    #description: 'Not default workdir for execution of steps'
   git-user:
     required: true
     description: 'Username for git configuration'
@@ -30,9 +27,6 @@ outputs:
   awk-out:
     description: "Output of awk command for getting image-tag value"
     value: ${{ steps.get-line.outputs.awk-out }}
-  #image-tag: 
-    #description: "get new image-tag"
-    #value: ${{ steps.tagging.outputs.image-tag }}    
 
 runs:
   using: "composite"
@@ -41,10 +35,7 @@ runs:
 
     - name: Git Setup
       shell: bash
-      #working-directory: ${{ inputs.not-default-workdir }}
       run: |
-        pwd
-        ls
         git config --global user.name '${{ inputs.git-user }}'
         git config --global user.email '${{ inputs.email }}'
 
@@ -57,10 +48,7 @@ runs:
 
     - name: Check and clone repository
       shell: bash
-      #working-directory: ${{ inputs.not-default-workdir }}
       run: |
-        pwd
-        ls
         if grep -q "${{ inputs.execution-workdir }}" <<< $(ls -lt); then
           echo "Repository with name ${{ inputs.execution-workdir }} already exists!"
           rm -rf ${{ inputs.execution-workdir }}
@@ -69,30 +57,23 @@ runs:
 
     - name: Change image-tag in compose file
       shell: bash
-      #working-directory: ${{ inputs.execution-workdir }}
       run: |
         cd ${{ inputs.execution-workdir }}
-        pwd
-        ls
         sed -E -i'' "s/(.*${{ inputs.app-component }}:).*/\1${GITHUB_SHA::7}/" 'docker-compose.yml'      
 
     - name: Commit and push changes without trigger
       shell: bash
-      #working-directory: ${{ inputs.execution-workdir }}
       env:
         GITHUB_TOKEN: ${{ inputs.git-token }}
       run: |
         cd ${{ inputs.execution-workdir }}
-        pwd
         git add docker-compose.yml
         git commit -m "[skip actions]"
         git push origin main  
  
     - name: Check containers existence
       shell: bash
-      working-directory: ${{ inputs.not-default-workdir }}
       run: |
-        pwd
         for cnt in back-cnt front-cnt pg-cnt
         do
           if docker ps -a --format '{{.Names}}' | grep -q "$cnt"; then
@@ -105,18 +86,14 @@ runs:
     - name: Execute awk command for extract second component image-tag
       id: get-line
       shell: bash
-      #working-directory: ${{ inputs.execution-workdir }}
       run: |
         cd ${{ inputs.execution-workdir }}
-        pwd
         echo "awk-out=$(awk '/${{ inputs.second-component-tag}}$/' docker-compose.yml)" >> $GITHUB_OUTPUT    
 
     - name: Check line content and up compose
       shell: bash
-      #working-directory: ${{ inputs.execution-workdir }}
       run: |
         cd ${{ inputs.execution-workdir }}
-        pwd
         echo ${{ steps.get-line.outputs.awk-out }}
         if [[ "${{ steps.get-line.outputs.awk-out }}" == *"undefined"* ]]; then
           echo "Second image-tag is not been determined yet!"
