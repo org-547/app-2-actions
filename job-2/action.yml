@@ -49,7 +49,7 @@ runs:
         git config --global user.email '${{ inputs.email }}'
 
     - name: SSH Setup
-      uses: MrSquaare/ssh-setup-action@v1
+      uses: MrSquaare/ssh-setup-action@v3
       with:
         host: github.com
         private-key: ${{ inputs.ssh-priv-key }}
