@@ -106,12 +106,17 @@ runs:
       id: get-line
       shell: bash
       #working-directory: ${{ inputs.execution-workdir }}
-      run: echo "awk-out=$(awk '/${{ inputs.second-component-tag}}$/' docker-compose.yml)" >> $GITHUB_OUTPUT    
+      run: |
+        cd ${{ inputs.execution-workdir }}
+        pwd
+        echo "awk-out=$(awk '/${{ inputs.second-component-tag}}$/' docker-compose.yml)" >> $GITHUB_OUTPUT    
 
     - name: Check line content and up compose
       shell: bash
       #working-directory: ${{ inputs.execution-workdir }}
       run: |
+        cd ${{ inputs.execution-workdir }}
+        pwd
         echo ${{ steps.get-line.outputs.awk-out }}
         if [[ "${{ steps.get-line.outputs.awk-out }}" == *"undefined"* ]]; then
           echo "Second image-tag is not been determined yet!"
