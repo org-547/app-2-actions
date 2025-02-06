@@ -41,7 +41,7 @@ runs:
 
     - name: Git Setup
       shell: bash
-      working-directory: ${{ inputs.not-default-workdir }}
+      #working-directory: ${{ inputs.not-default-workdir }}
       run: |
         pwd
         ls
@@ -57,7 +57,7 @@ runs:
 
     - name: Check and clone repository
       shell: bash
-      working-directory: ${{ inputs.not-default-workdir }}
+      #working-directory: ${{ inputs.not-default-workdir }}
       run: |
         pwd
         ls
@@ -73,6 +73,7 @@ runs:
       run: |
         pwd
         ls
+        cd ${{ inputs.execution-workdir }}
         sed -E -i'' "s/(.*${{ inputs.app-component }}:).*/\1${GITHUB_SHA::7}/" 'docker-compose.yml'      
 
     - name: Commit and push changes without trigger
