@@ -77,6 +77,7 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.git-token }}
       run: |
+        pwd
         git add docker-compose.yml
         git commit -m "[skip actions]"
         git push origin main  
@@ -84,6 +85,7 @@ runs:
     - name: Check containers existence
       shell: bash
       run: |
+        pwd
         for cnt in back-cnt front-cnt pg-cnt
         do
           if docker ps -a --format '{{.Names}}' | grep -q "$cnt"; then
