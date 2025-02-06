@@ -2,9 +2,9 @@ name: 'Update and Deploy'
 description: 'Update image tag and up compose'
 
 inputs:
-  not-default-workdir:
-    required: true
-    description: 'Not default workdir for execution of steps'
+  #not-default-workdir:
+    #required: true
+    #description: 'Not default workdir for execution of steps'
   git-user:
     required: true
     description: 'Username for git configuration'
