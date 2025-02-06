@@ -82,6 +82,7 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.git-token }}
       run: |
+        cd ${{ inputs.execution-workdir }}
         pwd
         git add docker-compose.yml
         git commit -m "[skip actions]"
