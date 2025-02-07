@@ -70,8 +70,9 @@ runs:
         echo "Change primary img-tag in compose"
         pwd
         ls
+        ls ./app-server-2
         #cd ${{ inputs.execution-workdir }}
-        sed -E -i'' "s/(.*${{ inputs.app-component }}:).*/\1${GITHUB_SHA::7}/" 'app-server-2/docker-compose.yml'      
+        sed -E -i'' "s/(.*${{ inputs.app-component }}:).*/\1${GITHUB_SHA::7}/" './app-server-2/docker-compose.yml'      
 
     - name: Commit and push changes without trigger
       shell: bash
