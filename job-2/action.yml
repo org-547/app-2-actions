@@ -38,7 +38,7 @@ runs:
 
     - name: Git Setup
       shell: bash
-      working-directory: ${{ inputs.not-default-workdir }}
+      #working-directory: ${{ inputs.not-default-workdir }}
       run: |
         echo "Git setup"
         pwd
