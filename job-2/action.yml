@@ -37,7 +37,7 @@ runs:
   steps:
 
     - name: Git Setup
-      #shell: bash
+      shell: bash
       working-directory: not-default-workdir
       run: |
         git config --global user.name '${{ inputs.git-user }}'
@@ -51,7 +51,7 @@ runs:
         private-key-name: github
 
     - name: Check and clone repository
-      #shell: bash
+      shell: bash
       working-directory: not-default-workdir
       run: |
         if grep -q "${{ inputs.execution-workdir }}" <<< $(ls -lt); then
@@ -61,13 +61,13 @@ runs:
         git clone git@github.com:org-547/${{ inputs.execution-workdir }}.git
 
     - name: Change image-tag in compose file
-      #shell: bash
+      shell: bash
       run: |
         #cd ${{ inputs.execution-workdir }}
         sed -E -i'' "s/(.*${{ inputs.app-component }}:).*/\1${GITHUB_SHA::7}/" 'docker-compose.yml'      
 
     - name: Commit and push changes without trigger
-      #shell: bash
+      shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.git-token }}
       run: |
@@ -77,7 +77,7 @@ runs:
         git push origin main  
  
     - name: Check containers existence
-      #shell: bash
+      shell: bash
       working-directory: not-default-workdir
       run: |
         for cnt in back-cnt front-cnt pg-cnt
@@ -91,13 +91,13 @@ runs:
 
     - name: Execute awk command for extract second component image-tag
       id: get-line
-      #shell: bash
+      shell: bash
       run: |
         #cd ${{ inputs.execution-workdir }}
         echo "awk-out=$(awk '/${{ inputs.second-component-tag}}$/' docker-compose.yml)" >> $GITHUB_OUTPUT    
 
     - name: Check line content and up compose
-      #shell: bash
+      shell: bash
       run: |
         #cd ${{ inputs.execution-workdir }}
         echo ${{ steps.get-line.outputs.awk-out }}
