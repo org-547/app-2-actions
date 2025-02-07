@@ -2,6 +2,9 @@ name: 'Update and Deploy'
 description: 'Update image tag and up compose'
 
 inputs:
+  not-default-workdir:
+    required: true
+    description: 'Workdir different from default'
   git-user:
     required: true
     description: 'Username for git configuration'
@@ -34,7 +37,7 @@ runs:
   steps:
 
     - name: Git Setup
-      shell: bash
+      #shell: bash
       run: |
         git config --global user.name '${{ inputs.git-user }}'
         git config --global user.email '${{ inputs.email }}'
@@ -47,7 +50,7 @@ runs:
         private-key-name: github
 
     - name: Check and clone repository
-      shell: bash
+      #shell: bash
       run: |
         if grep -q "${{ inputs.execution-workdir }}" <<< $(ls -lt); then
           echo "Repository with name ${{ inputs.execution-workdir }} already exists!"
@@ -56,23 +59,23 @@ runs:
         git clone git@github.com:org-547/${{ inputs.execution-workdir }}.git
 
     - name: Change image-tag in compose file
-      shell: bash
+      #shell: bash
       run: |
-        cd ${{ inputs.execution-workdir }}
+        #cd ${{ inputs.execution-workdir }}
         sed -E -i'' "s/(.*${{ inputs.app-component }}:).*/\1${GITHUB_SHA::7}/" 'docker-compose.yml'      
 
     - name: Commit and push changes without trigger
-      shell: bash
+      #shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.git-token }}
       run: |
-        cd ${{ inputs.execution-workdir }}
+        #cd ${{ inputs.execution-workdir }}
         git add docker-compose.yml
         git commit -m "[skip actions]"
         git push origin main  
  
     - name: Check containers existence
-      shell: bash
+      #shell: bash
       run: |
         for cnt in back-cnt front-cnt pg-cnt
         do
@@ -85,15 +88,15 @@ runs:
 
     - name: Execute awk command for extract second component image-tag
       id: get-line
-      shell: bash
+      #shell: bash
       run: |
-        cd ${{ inputs.execution-workdir }}
+        #cd ${{ inputs.execution-workdir }}
         echo "awk-out=$(awk '/${{ inputs.second-component-tag}}$/' docker-compose.yml)" >> $GITHUB_OUTPUT    
 
     - name: Check line content and up compose
-      shell: bash
+      #shell: bash
       run: |
-        cd ${{ inputs.execution-workdir }}
+        #cd ${{ inputs.execution-workdir }}
         echo ${{ steps.get-line.outputs.awk-out }}
         if [[ "${{ steps.get-line.outputs.awk-out }}" == *"undefined"* ]]; then
           echo "Second image-tag is not been determined yet!"
